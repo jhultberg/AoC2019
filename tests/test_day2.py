@@ -2,6 +2,7 @@ import pytest
 
 from aoc.day2 import calc, solve
 
+
 @pytest.mark.parametrize(
     "input, output",
     [
@@ -18,5 +19,6 @@ from aoc.day2 import calc, solve
 def test_calc(input, output):
     assert calc(input) == output
 
+
 def test_solve():
-    assert solve("data/day2.txt") ==i (3101878, 8444)
+    assert solve("data/day2.txt") == (3101878, 8444)

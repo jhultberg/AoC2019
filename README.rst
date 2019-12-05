@@ -15,6 +15,9 @@ For VDI:
 
     unset PYTHONPATH
 
+
+Regardless of OS:
+
 .. code-block::
 
     python3 -m venv --prompt="aoc" venv
