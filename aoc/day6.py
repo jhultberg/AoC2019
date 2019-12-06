@@ -4,24 +4,19 @@ def calc_tree(input):
 
 def num_orbits(input):
     tree = calc_tree(input)
-    return sum(len(find_parents(tree, node)) for node in tree)
+    return sum(len(set(find_parents(tree, node))) for node in tree)
 
 
-def find_parents(tree, node, parents=None):
-    if parents is None:
-        parents = set()
-
-    if node not in tree:
-        return parents
-    else:
-        parents.add(tree[node])
-        return find_parents(tree, tree[node], parents)
+def find_parents(tree, node):
+    while node in tree:
+        node = tree[node]
+        yield node
 
 
 def dist_between_orbits(input, first_planet, second_planet):
     tree = calc_tree(input)
-    first_route = find_parents(tree, first_planet)
-    second_route = find_parents(tree, second_planet)
+    first_route = set(find_parents(tree, first_planet))
+    second_route = set(find_parents(tree, second_planet))
     return len(first_route ^ second_route)
 
 

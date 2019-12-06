@@ -54,7 +54,7 @@ def test_calc_tree():
 
 
 def test_find_parents():
-    assert find_parents(tree, "H") == {"G", "B", "COM"}
+    assert set(find_parents(tree, "H")) == {"G", "B", "COM"}
 
 
 def test_dist_between_orbits():
