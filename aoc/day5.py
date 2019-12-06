@@ -11,8 +11,8 @@ OP_EXIT = "99"
 
 class Program:
     def __init__(self, program):
-         self.ptr = 0
-         self.program = list(program)
+        self.ptr = 0
+        self.program = list(program)
 
     def read(self, immediate=False):
         value = self.program[self.ptr]
@@ -25,11 +25,12 @@ class Program:
     def set_pc(self, position):
         self.ptr = position
 
-    def set(self, idx, value, immediate = False):
+    def set(self, idx, value, immediate=False):
         if not immediate:
             self.program[idx] = value
         else:
             self.program[self.program[idx]] = value
+
 
 def extract_value(program, instruction):
     if instruction[0] == "0":
@@ -63,6 +64,7 @@ def equal(program, value):
     else:
         program[value[2]] = 0
 
+
 def find_data_three_values(program, position, instructions):
     first_mode = instructions[2]
     second_mode = instructions[1]
@@ -72,7 +74,7 @@ def find_data_three_values(program, position, instructions):
     return [
         extract_value(program, (first_mode, first)),
         extract_value(program, (second_mode, second)),
-        third
+        third,
     ]
 
 
@@ -83,7 +85,7 @@ def find_data_two_values(program, position, instructions):
     second = program[position + 2]
     return [
         extract_value(program, (first_mode, first)),
-        extract_value(program, (second_mode, second))
+        extract_value(program, (second_mode, second)),
     ]
 
 
