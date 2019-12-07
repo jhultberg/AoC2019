@@ -1,6 +1,6 @@
 import sys
 
-from . import day1, day2, day3, day4, day5, day6
+from . import day1, day2, day3, day4, day5, day6, day7
 
 
 def main():
@@ -21,6 +21,8 @@ def main():
         a, b = day5.solve(sys.argv[2])
     elif day == 6:
         a, b = day6.solve(sys.argv[2])
+    elif day == 7:
+        a, b = day7.solve(sys.argv[2])
     else:
         print("No solution for the given day ({})".format(day))
         exit(1)
