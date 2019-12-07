@@ -177,7 +177,6 @@ def calc_with_feedback(data, settings):
         for a in calc_diagnostics(data_e):
             data_a.instructions.append(a)
         if data_a.done and data_b.done and data_c.done and data_d.done and data_e.done:
-            print(data_a.instructions)
             return data_a.instructions[0]
 
 
