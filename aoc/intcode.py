@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 
 OP_ADD = 1
 OP_MUL = 2
@@ -99,8 +99,7 @@ class Computer:
 
     def input(self, modes):
         position = self.get_output_param(modes[0])
-        self.write(position, self.instructions[0])
-        self.instructions = self.instructions[1:]
+        self.write(position, self.instructions.popleft())
 
 
 def get_param_modes(instruction):
@@ -111,8 +110,10 @@ def get_param_modes(instruction):
 
 
 def run(program, input=None):
-    if input == None:
-        input = []
+    if input is None:
+        input = deque()
+    elif not isinstance(input, deque):
+        input = deque(input)
     computer = Computer(program, input)
     while True:
         instruction = computer.get_input_param(1)
