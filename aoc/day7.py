@@ -43,7 +43,6 @@ def calc_max_thrust(program, with_feedback=False):
         if with_feedback:
             thrust_signal = calc_with_feedback(program, setting)
         else:
-            print(setting, setting[0])
             thrust_signal = calc_thruster(program, 0, setting)
         if thrust_signal > max_signal:
             max_signal = thrust_signal

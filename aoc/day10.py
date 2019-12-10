@@ -1,27 +1,30 @@
 import math
 
 
-def print_asteroids(asteroids):
-    x_size = max(asteroids)[0] + 1
-    y_size = max(asteroids)[1] + 1
-
-    for y in range(y_size):
-        for x in range(x_size):
-            if (x, y) in asteroids:
-                print('#', end="")
-            else:
-                print('.', end="")
-        print()
-
-
 def is_colinear(asteroid, curr_asteroid, prev_asteroid):
-    return prev_asteroid[0] * (curr_asteroid[1] - asteroid[1]) + curr_asteroid[0] * (asteroid[1] - prev_asteroid[1]) + asteroid[0] * (prev_asteroid[1] - curr_asteroid[1]) == 0
+    x1, y1 = curr_asteroid[0] - asteroid[0], curr_asteroid[1] - asteroid[1]
+    x2, y2 = prev_asteroid[0] - asteroid[0], prev_asteroid[1] - asteroid[1]
+    return abs(x1 * y2 - x2 * y1) < 1e-12
+
+
+def within(p, q, r):
+    # Return true iff q is between p and r (inclusive)
+    return p <= q <= r or r <= q <= p
 
 
 def is_between_points(asteroid, curr_asteroid, prev_asteroid):
     if not is_colinear(prev_asteroid, curr_asteroid, asteroid):
         return False
-    return abs(math.dist(curr_asteroid, asteroid) + math.dist(asteroid, prev_asteroid) - math.dist(curr_asteroid, prev_asteroid)) < 0.5
+    # Know that the asteroids are colinear so sufficent to only look that x or y is between
+    if curr_asteroid[0] != prev_asteroid[0]:
+        return within(curr_asteroid[0], asteroid[0], prev_asteroid[0])
+    else:
+        return within(curr_asteroid[1], asteroid[1], prev_asteroid[1])
+
+
+def has_different_directions(asteroid, curr_asteroid, prev_asteroid):
+    return is_between_points(curr_asteroid, asteroid, prev_asteroid)
+
 
 def find_asteroids(stars, curr_asteroid):
     seen_asteroids = set()
@@ -36,7 +39,10 @@ def find_asteroids(stars, curr_asteroid):
             elif is_between_points(asteroid, curr_asteroid, seen):
                 # The new asteroid blocks one we have saved
                 seen_asteroids.remove(seen)
+            elif has_different_directions(asteroid, curr_asteroid, seen):
+                continue
             else:
+
                 # The asteroid is blocked by one prevoisly checked
                 blocked = True
             break
@@ -47,15 +53,13 @@ def find_asteroids(stars, curr_asteroid):
 
 
 def find_most_asteroids(stars):
-    best_coordinate = (-1,-1)
+    best_coordinate = (-1, -1)
     most_asteroids = 0
     for coord in stars:
         seen_asteroids = len(find_asteroids(stars, coord))
-        print(coord, seen_asteroids)
         if seen_asteroids > most_asteroids:
             most_asteroids = seen_asteroids
             best_coordinate = coord
-    #print_asteroids(find_asteroids(stars, (5,8)))
     return (best_coordinate, most_asteroids)
 
 
@@ -65,37 +69,49 @@ def vaporize(stars, asteroid):
 
 def find_angle_from_vertical(station, asteroid):
     # Call atan2(x, y) instead of atan2(y, x) since want angle from y-axis, not x-axis
-    angle = math.atan2((asteroid[0] - station[0]), (asteroid[1] - station[1])) * 180 / math.pi
+    angle = (
+        math.atan2((asteroid[0] - station[0]), -(asteroid[1] - station[1]))
+        * 180
+        / math.pi
+    )
     if angle < 0:
         return 360 + angle
     return angle
 
 
 def destroy_asteroids(stars, station, target):
-    seen_asteroids = find_asteroids(stars, station)
-    angles = {}
-    for asteroid in seen_asteroids:
-        angles[asteroid] = find_angle_from_vertical(station, asteroid)
-    # This happens to work for py3.8....
-    angles = {k: v for k, v in sorted(angles.items(), key=lambda item: item[1])}
-
     target_sum = 0
-    for i, asteroid in enumerate(angles):
-        if i < target:
+    loop = 0
+    while True:
+        seen_asteroids = find_asteroids(stars, station)
+        if not seen_asteroids:
+            break
+        angles = {}
+        for asteroid in seen_asteroids:
+            angles[asteroid] = find_angle_from_vertical(station, asteroid)
+        # This happens to work for py3.8....
+        angles = {k: v for k, v in sorted(angles.items(), key=lambda item: item[1])}
+
+        # This will not work if we have to spin more than one lap...
+        for asteroid in angles:
+            if loop >= target:
+                return target_sum
             vaporize(stars, asteroid)
             target_sum = 100 * asteroid[0] + asteroid[1]
+            loop += 1
 
-    return target_sum
+    raise ValueError(f"Target bigger than number of asteroids. Target: {target}")
 
 
 def find_stars(input):
     stars = set()
     for y, line in enumerate(input):
         for x, val in enumerate(line):
-            if val == '#':
+            if val == "#":
                 stars.add((x, y))
 
     return stars
+
 
 def solve(path):
     with open(path) as f:
