@@ -92,7 +92,6 @@ def destroy_asteroids(stars, station, target):
         # This happens to work for py3.8....
         angles = {k: v for k, v in sorted(angles.items(), key=lambda item: item[1])}
 
-        # This will not work if we have to spin more than one lap...
         for asteroid in angles:
             if loop >= target:
                 return target_sum

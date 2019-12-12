@@ -60,6 +60,16 @@ def one_layer_array(pixels, columns):
     return [pixels[i : i + columns] for i in range(0, len(pixels), columns)]
 
 
+def render(data):
+    for y in range(len(data)):
+        for x in range(len(data[0])):
+            if data[y][x] == 1:
+                print("#", end="")
+            else:
+                print(" ", end="")
+        print()
+
+
 def sol_a(image, columns, rows):
     layers = find_layers(image, columns, rows)
     layer = find_layer_with_fewest(layers, 0)
@@ -69,7 +79,8 @@ def sol_a(image, columns, rows):
 def sol_b(image, columns, rows):
     layers = find_layers(image, columns, rows)
     pixels = convert_to_pixels(layers)
-    return one_layer_array(pixels, columns)
+    render(one_layer_array(pixels, columns))
+    return None
 
 
 def solve(path):
