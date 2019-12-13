@@ -15,7 +15,7 @@ OP_EXIT = 99
 class Computer:
     def __init__(self, program, instructions):
         self.program = defaultdict(int, enumerate(program))
-        self.instructions = instructions
+        self.instructions = iter(instructions)
         self.position = 0
         self.done = False
         self.relative_base = 0
@@ -99,7 +99,7 @@ class Computer:
 
     def input(self, modes):
         position = self.get_output_param(modes[0])
-        self.write(position, self.instructions.popleft())
+        self.write(position, next(self.instructions))
 
 
 def get_param_modes(instruction):
@@ -109,11 +109,7 @@ def get_param_modes(instruction):
     return modes
 
 
-def run(program, input=None):
-    if input is None:
-        input = deque()
-    elif not isinstance(input, deque):
-        input = deque(input)
+def run(program, input=deque()):
     computer = Computer(program, input)
     while True:
         instruction = computer.get_input_param(1)

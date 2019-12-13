@@ -54,7 +54,7 @@ def update_velocity(moon_1, moon_2, direction):
 
 def find_moons(input):
     for moon in input:
-        x, y, z = re.match(r"<x=([-]*\d+), y=([-]*\d+), z=([-]*\d+)>", moon).groups()
+        x, y, z = re.match(r"<x=(-?\d+), y=(-?\d+), z=(-?\d+)>", moon).groups()
         yield Moon(int(x), int(y), int(z))
 
 

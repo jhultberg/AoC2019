@@ -6,8 +6,13 @@ from collections import deque
 def calc_thruster(program, input, settings):
     prev_output = input
     for setting in settings:
-        prev_output = next(run(program, [setting, prev_output]))
+        prev_output = next(run(program, iter([setting, prev_output])))
     return prev_output
+
+
+def iter_queue(queue):
+    while queue:
+        yield queue.popleft()
 
 
 def calc_with_feedback(program, settings):
@@ -16,11 +21,11 @@ def calc_with_feedback(program, settings):
     deque_c = deque([settings[2]])
     deque_d = deque([settings[3]])
     deque_e = deque([settings[4]])
-    amplifier_a = run(program, deque_a)
-    amplifier_b = run(program, deque_b)
-    amplifier_c = run(program, deque_c)
-    amplifier_d = run(program, deque_d)
-    amplifier_e = run(program, deque_e)
+    amplifier_a = run(program, iter_queue(deque_a))
+    amplifier_b = run(program, iter_queue(deque_b))
+    amplifier_c = run(program, iter_queue(deque_c))
+    amplifier_d = run(program, iter_queue(deque_d))
+    amplifier_e = run(program, iter_queue(deque_e))
     while True:
         deque_b.append(next(amplifier_a, None))
         deque_c.append(next(amplifier_b, None))
