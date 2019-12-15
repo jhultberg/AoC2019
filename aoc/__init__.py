@@ -14,6 +14,8 @@ from . import (
     day11,
     day12,
     day13,
+    day14,
+    day15,
 )
 
 
@@ -49,6 +51,10 @@ def main():
         a, b = day12.solve(sys.argv[2])
     elif day == 13:
         a, b = day13.solve(sys.argv[2])
+    elif day == 14:
+        a, b = day14.solve(sys.argv[2])
+    elif day == 15:
+        a, b = day15.solve(sys.argv[2])
     else:
         print("No solution for the given day ({})".format(day))
         exit(1)
