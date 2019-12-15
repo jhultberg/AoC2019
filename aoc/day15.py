@@ -28,6 +28,13 @@ class Droid:
         min_y = min(self.board, key=itemgetter(1))[1]
         for y in reversed(range(min_y, max_y)):
             for x in range(min_x, max_x):
+                if (x, y) not in self.board:
+                    print(" ", end="")
+                    continue
+                if (x, y) == self.position:
+                    print("X", end="")
+                    continue
+
                 coord = self.board[(x, y)]
                 if coord == 0:
                     print("#", end="")
@@ -76,7 +83,7 @@ class Droid:
 
     def movements(self):
         while True:
-            print('mov', self.direction)
+            #print('mov', self.direction)
             yield self.direction
 
 
@@ -85,7 +92,7 @@ class Droid:
         for i in count():
             try:
                 status_code = next(droid)
-                print(status_code)
+                #print(status_code)
                 if status_code == 0:
                     #wall
                     # turn and try again
@@ -96,11 +103,11 @@ class Droid:
                     #update position
                     self.update_position()
                     # if already mapped should probably turn here aswell?
-                    if self.board[self.position] == 1:
+                   # if self.board[self.position] == 1:
                         #already been here, try another route
-                        self.turn_left()
-                    else:
-                        self.board[self.position] = 1
+                    #    self.turn_left()
+                    #else:
+                    self.board[self.position] = 1
                 elif status_code == 2:
                     #found oxygen
                     self.update_position()
@@ -109,6 +116,8 @@ class Droid:
                     #return self.shortest_route()
                 else:
                     raise ValueError(f"Unexpected game instruction: {output}")
+                print(self.position)
+                self.render()
             except StopIteration:
                 print('stop')
                 #self.render()
