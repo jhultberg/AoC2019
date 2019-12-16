@@ -1,11 +1,6 @@
 import re, math
-
-
-def calc_tree(input):
-    tree = {}
-    for objects in input:
-        tree[objects[0]] = objects[1]
-    return tree
+from collections import defaultdict
+from itertools import count
 
 
 def get_reactions(input):
@@ -20,68 +15,44 @@ def get_reactions(input):
         yield (key_pair[1], (int(key_pair[0]), value_pairs))
 
 
-def translate_to_ore(tree, reaction, times=1, div=1, ore=[]):
-    print("re", reaction)
-    next_level = tree[reaction[1]]
-    print("nl", next_level)
-    next_instructions = next_level[1]
-    if len(next_instructions) == 1 and next_instructions[0][1] == "ORE":
-        print((times / div, reaction[1]))
-        return (times / div, reaction[1])
+class Reactor:
+    def __init__(self, tree):
+        self.tree = tree
+        self.total_ore = 0
+        self.leftovers = defaultdict(int)
 
-    for instruction in next_instructions:
-        print("in", instruction)
-        print("div", div, next_level[0])
-        print("mul", times, instruction[0])
-        print(next_level[0], reaction[0], instruction[0])
-        if next_level[0] > reaction[0]:
-            ore.append(
-                translate_to_ore(
-                    tree, instruction, instruction[0] * next_level[0], div, []
-                )
-            )
+    def calc_cost(self, to_produce, num):
+        if to_produce == "ORE":
+            self.total_ore += num
+            return
+
+        if self.leftovers[to_produce] != 0:
+            num -= self.leftovers[to_produce]
+        if num < 0:
+            self.leftovers[to_produce] = abs(num)
+            return
         else:
-            ore.append(
-                translate_to_ore(
-                    tree, instruction, instruction[0] * times, div * next_level[0], []
-                )
-            )
-    return ore
+            self.leftovers[to_produce] = 0
+
+        min_quantity, ingredients = self.tree[to_produce]
+        batches = (num + min_quantity - 1) // min_quantity
+        self.leftovers[to_produce] += batches * min_quantity - num
+        for num_req_per_batch, ingredient_name in ingredients:
+            self.calc_cost(ingredient_name, num_req_per_batch * batches)
 
 
-def remove_nestings(l, output=[]):
-    for i in l:
-        if type(i) == list:
-            remove_nestings(i, output)
-        elif type(i) == tuple and type(i[0]) == tuple and type(i[1]) == tuple:
-            remove_nestings(i, output)
-        else:
-            output.append(i)
-    return output
+def translate_to_ore(tree, num_wanted=1):
+    reactor = Reactor(tree)
+    reactor.calc_cost("FUEL", num_wanted)
+    return reactor.total_ore
 
 
-def num_ore(tree):
-    print(tree)
-    start = (1, "FUEL")
-    ore = remove_nestings(translate_to_ore(tree, start))
-    print(ore)
-    d = {}
-    for pair in ore:
-        if pair[1] in d:
-            d[pair[1]] += pair[0]
-        else:
-            d[pair[1]] = pair[0]
-    print(d)
-    tot_ore = 0
-    rest = 0
-    for k, v in d.items():
-        in_ore = tree[k]
-        v = v - rest
-        mul = math.ceil(v / in_ore[0])
-        rest = mul * in_ore[0] - v
-        tot_ore += mul * in_ore[1][0][0]
-
-    return tot_ore
+def find_max_fuel(tree, delta, start):
+    for i in count(start, delta):
+        if translate_to_ore(tree, i) > 1_000_000_000_000:
+            if delta == 1:
+                return i - 1
+            return find_max_fuel(tree, delta // 10, i - delta)
 
 
 def solve(path):
@@ -89,8 +60,8 @@ def solve(path):
         input = list(line.strip().split(" => ") for line in f)
 
     reactions = list(get_reactions(input))
-    print(reactions)
-    tree = calc_tree(reactions)
-    ore = num_ore(tree)
+    tree = dict(reactions)
+    ore = translate_to_ore(tree)
+    max_fuel = find_max_fuel(tree, 1_000_000, 1)
 
-    return (ore, None)
+    return (ore, max_fuel)

@@ -1,4 +1,4 @@
-from aoc.day14 import calc_tree, num_ore, solve
+from aoc.day14 import translate_to_ore, solve
 
 reactions = [
     ("A", (10, [(10, "ORE")])),
@@ -86,16 +86,15 @@ tree_2 = {
 }
 
 
-def test_calc_tree():
-    assert calc_tree(reactions) == tree
-
-
 def test_num_ore():
-    # assert num_ore(tree) == 31
-    # assert num_ore(tree_2) == 165
-    assert num_ore(calc_tree(reactions_2)) == 13312
-    assert num_ore(calc_tree(reactions_3)) == 180697
+    assert translate_to_ore(tree) == 31
+    assert translate_to_ore(tree_2) == 165
+    assert translate_to_ore(dict(reactions_2)) == 13312
+    assert translate_to_ore(dict(reactions_3)) == 180697
+
+    assert translate_to_ore(dict(reactions_2), 82892753) < 1_000_000_000_000
+    assert translate_to_ore(dict(reactions_2), 82892754) > 1_000_000_000_000
 
 
 def _test_solve():
-    assert solve("data/day14.txt") == (None, None)
+    assert solve("data/day14.txt") == (168046, 6972986)
