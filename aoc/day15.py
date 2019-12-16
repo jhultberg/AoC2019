@@ -1,7 +1,8 @@
 from .intcode import run
-from collections import defaultdict
+from collections import defaultdict, deque
 from itertools import count
 from operator import itemgetter
+import time
 
 
 class Droid:
@@ -13,14 +14,17 @@ class Droid:
 
     def __init__(self, program):
         self.program = program
-        self.board = defaultdict()
+        self.board = defaultdict(int)
         self.position = (0, 0)
-        self.oxygen = (None, None)
+        self.oxygen = None
         self.direction = self.DIR_NORTH
+        self.route = []
+        self.visited = set()
 
         self.board[(0, 0)] = 1
 
-    def render(self):
+    def render(self, i):
+        time.sleep(0.01)
         max_x = max(self.board, key=itemgetter(0))[0] + 1
         max_y = max(self.board, key=itemgetter(1))[1] + 1
         min_x = min(self.board, key=itemgetter(0))[0]
@@ -43,18 +47,23 @@ class Droid:
                     print("O", end="")
             print()
         print()
+        print('iteration', i)
+        print('route', self.route)
+        print('oxygen', self.oxygen)
 
     def update_position(self):
-        self.position = self.find_next_position()
+        self.position = self.find_next_position(self.direction)
+        self.route.append(self.direction)
+        self.visited.add(self.position)
 
-    def find_next_position(self):
-        if self.direction == self.DIR_NORTH:
+    def find_next_position(self, direction):
+        if direction == self.DIR_NORTH:
             return (self.position[0], self.position[1] + 1)
-        elif self.direction == self.DIR_SOUTH:
+        elif direction == self.DIR_SOUTH:
             return (self.position[0], self.position[1] - 1)
-        elif self.direction == self.DIR_EAST:
+        elif direction == self.DIR_EAST:
             return (self.position[0] + 1, self.position[1])
-        elif self.direction == self.DIR_WEST:
+        elif direction == self.DIR_WEST:
             return (self.position[0] - 1, self.position[1])
 
     def found_oxygen(self):
@@ -76,9 +85,30 @@ class Droid:
         self.turn_left()
         self.turn_left()
 
+
+    def inverse_direction(self, direction):
+        if direction == self.DIR_SOUTH:
+            return self.DIR_NORTH
+        elif direction == self.DIR_NORTH:
+            return self.DIR_SOUTH
+        elif direction == self.DIR_WEST:
+            return self.DIR_EAST
+        elif direction == self.DIR_EAST:
+            return self.DIR_WEST
+
+    def backtrack(self):
+        print('back', self.route)
+        prev = self.route.pop()
+        self.direction = self.inverse_direction(prev)
+        self.update_position()
+        print('dir', self.direction)
+        print('posiiotn', self.position)
+        input()
+        self.route.pop()
+
+
     def movements(self):
         while True:
-            # print('mov', self.direction)
             yield self.direction
 
     def explore(self):
@@ -86,36 +116,44 @@ class Droid:
         for i in count():
             try:
                 status_code = next(droid)
-                # print(status_code)
                 if status_code == 0:
                     # wall
-                    # turn and try again
-                    self.board[self.find_next_position()] = 0
-                    self.turn_left()
+                    self.board[self.find_next_position(self.direction)] = 0
+                    self.visited.add(self.find_next_position(self.direction))
                 elif status_code == 1:
                     # moved
                     # update position
                     self.update_position()
-                    # if already mapped should probably turn here aswell?
-                    # if self.board[self.position] == 1:
-                    # already been here, try another route
-                    #    self.turn_left()
-                    # else:
                     self.board[self.position] = 1
                 elif status_code == 2:
                     # found oxygen
                     self.update_position()
                     self.found_oxygen()
-                    print(self.oxygen)
-                    # return self.shortest_route()
                 else:
                     raise ValueError(f"Unexpected game instruction: {output}")
-                print(self.position)
-                self.render()
+
+                if self.find_next_position(self.direction) not in self.visited:
+                    continue
+                self.turn_left()
+                if self.find_next_position(self.direction) not in self.visited:
+                    continue
+                self.turn_left()
+                if self.find_next_position(self.direction) not in self.visited:
+                    continue
+                self.turn_left()
+                if self.find_next_position(self.direction) not in self.visited:
+                    continue
+                if self.route:
+                    self.backtrack()
+                else:
+                    return self.oxygen
+
+
+                self.render(i)
             except StopIteration:
                 print("stop")
-                # self.render()
-                return (0, None)
+                self.render(i)
+                return None
 
     def shortest_route(self):
         pass
@@ -124,8 +162,8 @@ class Droid:
 
 
 def find_oxygen(program):
-    a, b = Droid(program).explore()
-    return (a, b)
+    a = Droid(program).explore()
+    return a
 
 
 def solve(path):
@@ -135,6 +173,6 @@ def solve(path):
     for instruction in input:
         input_data.append(int(instruction))
 
-    a = find_oxygen(input_data)[0]
+    a = find_oxygen(input_data)
 
     return (a, None)
