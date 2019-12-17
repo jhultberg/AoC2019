@@ -17,10 +17,11 @@ class Droid:
         self.board = defaultdict(int)
         self.position = (0, 0)
         self.oxygen = None
-        self.direction = self.DIR_NORTH
+        self.direction = self.DIR_WEST
         self.route = []
         self.visited = set()
-
+        #self.droid = maze_tester(self.movements())
+        self.droid = run(self.program, self.movements())
         self.board[(0, 0)] = 1
 
     def render(self, i):
@@ -47,9 +48,6 @@ class Droid:
                     print("O", end="")
             print()
         print()
-        print('iteration', i)
-        print('route', self.route)
-        print('oxygen', self.oxygen)
 
     def update_position(self):
         self.position = self.find_next_position(self.direction)
@@ -58,9 +56,9 @@ class Droid:
 
     def find_next_position(self, direction):
         if direction == self.DIR_NORTH:
-            return (self.position[0], self.position[1] + 1)
-        elif direction == self.DIR_SOUTH:
             return (self.position[0], self.position[1] - 1)
+        elif direction == self.DIR_SOUTH:
+            return (self.position[0], self.position[1] + 1)
         elif direction == self.DIR_EAST:
             return (self.position[0] + 1, self.position[1])
         elif direction == self.DIR_WEST:
@@ -80,12 +78,6 @@ class Droid:
         elif self.direction == self.DIR_EAST:
             self.direction = self.DIR_NORTH
 
-    def turn_right(self):
-        self.turn_left()
-        self.turn_left()
-        self.turn_left()
-
-
     def inverse_direction(self, direction):
         if direction == self.DIR_SOUTH:
             return self.DIR_NORTH
@@ -97,59 +89,49 @@ class Droid:
             return self.DIR_WEST
 
     def backtrack(self):
-        print('back', self.route)
-        prev = self.route.pop()
-        self.direction = self.inverse_direction(prev)
-        self.update_position()
-        print('dir', self.direction)
-        print('posiiotn', self.position)
-        input()
-        self.route.pop()
-
+        self.move(self.inverse_direction(self.route.pop()))
+        self.position = self.find_next_position(self.direction)
+        #input()
 
     def movements(self):
         while True:
             yield self.direction
 
+    def move(self, cmd):
+        self.direction = cmd
+        status = next(self.droid)
+        return status
+
+    def find_next_direction(self):
+        for i in range(1,5):
+            if self.find_next_position(i) not in self.visited:
+                return i
+
+
     def explore(self):
-        droid = run(self.program, self.movements())
         for i in count():
             try:
-                status_code = next(droid)
+                cmd = self.find_next_direction()
+                if cmd is None:
+                    if not self.route:
+                        self.render(i)
+                        return self.oxygen
+                    self.backtrack()
+                    continue
+
+                status_code = self.move(cmd)
                 if status_code == 0:
-                    # wall
                     self.board[self.find_next_position(self.direction)] = 0
                     self.visited.add(self.find_next_position(self.direction))
                 elif status_code == 1:
-                    # moved
-                    # update position
                     self.update_position()
                     self.board[self.position] = 1
                 elif status_code == 2:
-                    # found oxygen
                     self.update_position()
                     self.found_oxygen()
                 else:
                     raise ValueError(f"Unexpected game instruction: {output}")
 
-                if self.find_next_position(self.direction) not in self.visited:
-                    continue
-                self.turn_left()
-                if self.find_next_position(self.direction) not in self.visited:
-                    continue
-                self.turn_left()
-                if self.find_next_position(self.direction) not in self.visited:
-                    continue
-                self.turn_left()
-                if self.find_next_position(self.direction) not in self.visited:
-                    continue
-                if self.route:
-                    self.backtrack()
-                else:
-                    return self.oxygen
-
-
-                self.render(i)
             except StopIteration:
                 print("stop")
                 self.render(i)
@@ -159,6 +141,48 @@ class Droid:
         pass
 
     # BFS
+
+
+def next_coord(coord, cmd):
+    if cmd == 1:
+        return tuple(a + b for a, b in zip(coord, (0,-1)))
+    if cmd == 2:
+        return tuple(a + b for a, b in zip(coord, (0,1)))
+    if cmd == 3:
+        return tuple(a + b for a, b in zip(coord, (-1,0)))
+    if cmd == 4:
+        return tuple(a + b for a, b in zip(coord, (1,0)))
+
+
+def maze_tester(input):
+    maze_str = [
+        "########",
+        "#     O#",
+        "### ####",
+        "  # #   ",
+        "  #X#   ",
+        "  ###   ",
+    ]
+    walls = {
+        (x, y)
+        for y, line in enumerate(maze_str)
+        for x, tile in enumerate(line) if tile == "#"
+    }
+    # walls = set([(0,0), (1,0), (2,0), (3,0), (4,0), (5,0), (6,0), (7,0), (0,1), (7,1), (0,2), (1,2), (2,2), (4,2), (5,2), (6,2), (7,2),(2,3), (4,3), (2,4), (4,4),(2,5), (4,5), (4,6), (5,6), (6,6)])
+    curr_pos = (3,5)
+    goal = (6,1)
+    while True:
+        cmd = next(input)
+        next_pos = next_coord(curr_pos, cmd)
+        print('next',next_pos)
+        if next_pos in walls:
+            yield 0
+        elif next_pos == goal:
+            yield 2
+            curr_pos = next_pos
+        else:
+            yield 1
+            curr_pos = next_pos
 
 
 def find_oxygen(program):
