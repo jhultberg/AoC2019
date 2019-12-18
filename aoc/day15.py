@@ -20,7 +20,6 @@ class Droid:
         self.direction = self.DIR_WEST
         self.route = []
         self.visited = set()
-        #self.droid = maze_tester(self.movements())
         self.droid = run(self.program, self.movements())
         self.board[(0, 0)] = 1
 
@@ -91,7 +90,7 @@ class Droid:
     def backtrack(self):
         self.move(self.inverse_direction(self.route.pop()))
         self.position = self.find_next_position(self.direction)
-        #input()
+        # input()
 
     def movements(self):
         while True:
@@ -103,10 +102,9 @@ class Droid:
         return status
 
     def find_next_direction(self):
-        for i in range(1,5):
+        for i in range(1, 5):
             if self.find_next_position(i) not in self.visited:
                 return i
-
 
     def explore(self):
         for i in count():
@@ -115,7 +113,7 @@ class Droid:
                 if cmd is None:
                     if not self.route:
                         self.render(i)
-                        return self.oxygen
+                        return (self.shortest_route(), self.fill_with_oxygen())
                     self.backtrack()
                     continue
 
@@ -133,70 +131,76 @@ class Droid:
                     raise ValueError(f"Unexpected game instruction: {output}")
 
             except StopIteration:
-                print("stop")
                 self.render(i)
                 return None
 
+    def find_neighbors(self, visited):
+        neighbors = deque()
+        neighbor = (self.position[0] + 1, self.position[1])
+        if self.board[neighbor] != 0 and neighbor not in visited:
+            neighbors.append(neighbor)
+        neighbor = (self.position[0] - 1, self.position[1])
+        if self.board[neighbor] != 0 and neighbor not in visited:
+            neighbors.append(neighbor)
+        neighbor = (self.position[0], self.position[1] + 1)
+        if self.board[neighbor] != 0 and neighbor not in visited:
+            neighbors.append(neighbor)
+        neighbor = (self.position[0], self.position[1] - 1)
+        if self.board[neighbor] != 0 and neighbor not in visited:
+            neighbors.append(neighbor)
+
+        return neighbors
+
+    def find_distance(self, relations, fr, to):
+        pos = fr
+        for i in count():
+            pos = relations[pos]
+            if pos == to:
+                return i + 1
+
     def shortest_route(self):
-        pass
+        visited = set()
+        nodes = deque([self.position])
+        relations = {}
 
-    # BFS
+        while nodes:
+            node = nodes.popleft()
+            if node == self.oxygen:
+                return self.find_distance(relations, self.oxygen, (0, 0))
+            visited.add(node)
+            self.position = node
+            neighbors = self.find_neighbors(visited)
 
+            for n in neighbors:
+                relations[n] = self.position
+            nodes += neighbors
 
-def next_coord(coord, cmd):
-    if cmd == 1:
-        return tuple(a + b for a, b in zip(coord, (0,-1)))
-    if cmd == 2:
-        return tuple(a + b for a, b in zip(coord, (0,1)))
-    if cmd == 3:
-        return tuple(a + b for a, b in zip(coord, (-1,0)))
-    if cmd == 4:
-        return tuple(a + b for a, b in zip(coord, (1,0)))
+    def fill_with_oxygen(self):
+        visited = set()
+        self.position = self.oxygen
+        nodes = deque([self.position])
+        relations = {}
 
+        while nodes:
+            node = nodes.popleft()
+            self.board[(node)] = 2
+            visited.add(node)
+            self.position = node
+            neighbors = self.find_neighbors(visited)
 
-def maze_tester(input):
-    maze_str = [
-        "########",
-        "#     O#",
-        "### ####",
-        "  # #   ",
-        "  #X#   ",
-        "  ###   ",
-    ]
-    walls = {
-        (x, y)
-        for y, line in enumerate(maze_str)
-        for x, tile in enumerate(line) if tile == "#"
-    }
-    # walls = set([(0,0), (1,0), (2,0), (3,0), (4,0), (5,0), (6,0), (7,0), (0,1), (7,1), (0,2), (1,2), (2,2), (4,2), (5,2), (6,2), (7,2),(2,3), (4,3), (2,4), (4,4),(2,5), (4,5), (4,6), (5,6), (6,6)])
-    curr_pos = (3,5)
-    goal = (6,1)
-    while True:
-        cmd = next(input)
-        next_pos = next_coord(curr_pos, cmd)
-        print('next',next_pos)
-        if next_pos in walls:
-            yield 0
-        elif next_pos == goal:
-            yield 2
-            curr_pos = next_pos
-        else:
-            yield 1
-            curr_pos = next_pos
-
-
-def find_oxygen(program):
-    a = Droid(program).explore()
-    return a
+            for n in neighbors:
+                relations[n] = self.position
+            nodes += neighbors
+        return self.find_distance(relations, self.position, self.oxygen)
 
 
 def solve(path):
     with open(path) as f:
         input = f.read().rstrip().split(",")
-    input_data = []
+    program = []
     for instruction in input:
-        input_data.append(int(instruction))
+        program.append(int(instruction))
 
-    a = find_oxygen(input_data)
+    a, b = Droid(program).explore()
 
-    return (a, None)
+    return (a, b)
