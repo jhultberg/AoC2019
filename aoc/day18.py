@@ -40,9 +40,8 @@ class Maze:
 
         return neighbors
 
-
     def bfs(self, start):
-        nodes = deque([([start],set())])
+        nodes = deque([([start], set())])
         visited = set()
 
         while nodes:
@@ -50,7 +49,7 @@ class Maze:
             print(path)
             node = path[-1]
             if node in self.keys and node != start:
-                 yield(self.keys[node], len(path), blockers)
+                yield (self.keys[node], len(path), blockers)
             if node in self.doors:
                 blockers.add(self.doors[node])
 
@@ -60,18 +59,11 @@ class Maze:
             for n in neighbors:
                 nodes += ([path + [n]], blockers)
 
-
     def collect_all_keys(self):
         all_distances = []
         for key in self.keys:
             all_distances.append((self.keys[key], list(self.bfs(key))))
         print(all_distances)
-
-
-
-
-
-
 
 
 def parse_input(input_data):
@@ -84,14 +76,14 @@ def parse_input(input_data):
     for y, line in enumerate(input_data):
         for x, tile in enumerate(line):
             if tile == "#":
-                walls.add((x,y))
+                walls.add((x, y))
             elif re.match(r"[A-Z]", tile):
-                doors[(x,y)] = tile
-                name_to_doors[tile] = (x,y)
+                doors[(x, y)] = tile
+                name_to_doors[tile] = (x, y)
             elif re.match(r"[a-z]", tile):
-                keys[(x,y)] = tile
+                keys[(x, y)] = tile
             elif tile == "@":
-                position = (x,y)
+                position = (x, y)
             else:
                 continue
     return Maze(walls, doors, name_to_doors, keys, position)
