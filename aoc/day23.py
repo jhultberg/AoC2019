@@ -1,7 +1,6 @@
 from .intcode import run
 from collections import deque
 from itertools import count
-from pprint import pprint
 from copy import deepcopy
 import threading
 from queue import Queue
@@ -14,8 +13,10 @@ class Network:
         self.dics = {}
         self.queues = {}
 
-    def run_dics(self):
+    def run_dics(self, nat_mode=False):
         q = Queue()
+        nat = None
+        latest = None
         for i in range(self.no_dics):
             self.queues[i] = deque([i])
             self.dics[i] = threading.Thread(target=self.dic, args=(i, q))
@@ -23,15 +24,26 @@ class Network:
             dic.start()
 
         for i in count():
+            idle = True
+            for _, que in self.queues.items():
+                if que:
+                    idle = False
+            if i != 0 and idle:
+                if latest and nat[1] == latest[1]:
+                    return latest[1]
+                latest = nat
+                self.queues[0].append(nat)
+
             item = q.get()
             address = item[0]
             x = item[1]
             y = item[2]
             if address == 255:
-                # for thread in self.dics.items():
-                #    print("hjkh")
-                #    thread[1].join()
-                return y
+                if not nat_mode:
+                    return y
+                nat = (x, y)
+                continue
+
             self.queues[address].append((x, y))
 
     def dic(self, i, queue):
@@ -69,5 +81,6 @@ def solve(path):
         program.append(int(instruction))
 
     a = Network(program, 50).run_dics()
+    b = Network(program, 50).run_dics(nat_mode=True)
 
-    return (a, None)
+    return (a, b)
