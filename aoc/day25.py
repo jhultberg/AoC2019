@@ -31,7 +31,7 @@ class Droid:
             try:
                 output = next(robot)
                 try:
-                    print(chr(output))
+                    print(chr(output), end="")
                 except ValueError:
                     return output
             except StopIteration:
