@@ -44,6 +44,36 @@ def shuffle(program, deck_size, position):
     return (k * position +m ) % deck_size
 
 
+def lcg(k, m, mod, x, iterations = 1):
+    if iterations == 1:
+        return (k * x + m) % mod
+
+    if iterations < 0:
+         k_inv = pow(k, -1, mod)
+         k = k_inv
+         m = -k * m
+         iterations = abs(iterations)
+
+    m = (pow(k, iterations, (k - 1) * mod) - 1) // (k - 1) * m
+    k = pow(k, iterations, mod)
+    return (k * x + m) % mod
+
+
+#def shuffle_b(program, deck_size):
+#    k, m = k_and_m(program, deck_size)
+#    x = 2019
+#    lcg_rand = LcgRandom(k, m, deck_size, x)
+#    lcg_rand.next()
+#    print(lcg_rand.x)
+#    lcg_rand = LcgRandom(k, m, deck_size, lcg_rand.x)
+#    lcg_rand.skip(-1)
+#
+#    lcg_rand = LcgRandom(k, m, deck_size, x)
+#    print(lcg_rand.x)
+
+
+
+
 def solve(path):
     with open(path) as f:
         input = f.readlines()
@@ -55,4 +85,11 @@ def solve(path):
     mega_deck_size = 119_315_717_514_047
     no_shufflings = 101_741_582_076_661
     b = 0
+
+    k, m = k_and_m(program, mega_deck_size)
+    b = lcg(k, m, mega_deck_size, no_shufflings)
+
+    k1, m1 = k_and_m(program, 10007)
+    print(lcg(k1, m1, 10007, 7614, -1))
+
     return (a, b)
